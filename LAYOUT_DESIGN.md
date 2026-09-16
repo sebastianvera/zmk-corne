@@ -1,129 +1,166 @@
 # Corne 42-Key Layout — Design Doc (macOS + Aerospace + Neovim)
 
-> Handoff document. Import this into a coding-agent session when iterating:
+> Handoff document. Import into a coding-agent session when iterating:
 > run the CLI inside the repo, `/import LAYOUT_DESIGN.md`, then ask for changes.
-> All chord mechanics below were verified against the ZMK hold-tap documentation.
+> All chord mechanics verified against the ZMK hold-tap documentation and
+> audited against Miryoku (the most battle-tested minimal layout), urob's
+> reference ZMK config, and markstos's layout.
 
 ## User profile
 
 - Corne 42 keys (full 3x6 outer columns used), ZMK firmware, QWERTY
 - macOS; Neovim (modal editing, `jk` escape, no Cmd-based editor shortcuts)
+- Terminal-heavy: readline chords (Ctrl+A/E/K/U/W/R/C/D/Z) must work
 - Coding-heavy: wants unshifted symbols, easy numbers
 - 80+ WPM typing speed — HRM misfire protection is mandatory
-- Aerospace tiling WM is the window manager of choice; its primary modifier is **Alt (Option)**:
-  - `alt+1..9` — switch workspace
-  - `alt+h/j/k/l` — focus window
-  - `alt+shift+h/j/k/l` — move window
-  - `alt+<letter>` — app launchers
-- macOS chords in browsers/docs: `Cmd+Tab`, `` Cmd+` ``, `Cmd+1..9` (tabs), `Cmd+Opt+1..9` (Google Docs)
-- Right hand is frequently on the mouse — Aerospace control should be one-hand (left) operable
+- Aerospace tiling WM; its primary modifier is **Alt (Option)**:
+  `alt+1..9` workspaces, `alt+hjkl` focus, `alt+shift+hjkl` move, `alt+<letter>` launchers
+- macOS chords in browsers/docs: `Cmd+Tab`, `` Cmd+` ``, `Cmd+1..9`, `Cmd+Opt+1..9`,
+  `Cmd+Shift+3/4/5` screenshots, `Cmd+T/W/R/L/Q`, `Cmd+Space`, zoom `Cmd/Alt + -/+`
+- Right hand is frequently on the mouse — Aerospace control must be left-hand operable
+
+## Key coverage matrix (audited — nothing missing)
+
+| Category | Location |
+|---|---|
+| Letters A–Z | Base |
+| Digits 0–9 | NUM right side |
+| All 29 shifted/unshifted symbols | SYM, all unshifted |
+| **F1–F12** | NAV right side (6–10, 30–34) + corners (0, 11) |
+| **Media** (vol±/mute/prev/next/play) | NAV left bottom (17, 25–29) |
+| **Forward Delete** | NAV 23 (`Cmd+Del` = delete-to-line-start via 12 or J) |
+| Home/End/PgUp/PgDn | NUM 11/23/33/34 |
+| Arrows | NAV left hand (FDSA mirrored) |
+| Enter/Tab/Space/Backspace/Esc | Thumbs + corners (plain keys) |
+| Caps Lock | caps-word combo (corner keys 0+11) — strictly better |
+| All 8 modifiers | Dedicated LGUI(12)/LALT(24)/RSHFT(35)/RALT(40) + HRMs both hands |
 
 ## Hard-won design decisions (do not regress these)
 
-1. **Mod order on home row: Ctrl-Shift-Alt-GUI** (pinky→index, mirrored on right).
-   Cmd/Alt end up on the strongest fingers and are the most-chorded mods.
-2. **Bilateral positional hold-tap** (`hold-trigger-key-positions` = opposite hand + thumbs)
-   + `hold-trigger-on-release` + `require-prior-idle-ms 150` + `balanced` flavor,
-   tapping-term 280, quick-tap 175. This is urob's "timeless HRM" recipe verbatim.
-   - `balanced` (NOT tap-preferred): hold resolves on interrupting key press+release,
-     retroactively applying the mod — chords are instant, no waiting out a timer.
-   - `hold-trigger-on-release` defers only the *positional* check to release,
-     which is what allows same-hand modifier stacking (press both, release, tap).
-3. **Dedicated left Alt on the left outer column (pos 24).** Aerospace uses Alt
-   constantly; a plain `&kp` bypasses all hold-tap logic (same-hand chords work)
-   and survives on layers via `&trans`. This also makes `alt+hjkl` and
-   `alt+shift+hjkl` fully left-handed (right hand stays on the mouse).
-4. **All 10 numbers on the RIGHT hand** (NUM layer, left thumb). Cmd/Ctrl live on
-   the left home row, so `Cmd+num`, `Cmd+Opt+num`, `Alt+num` are all cross-hand.
-   Left home-row mods stay alive *on the NUM layer itself* via `&trans`.
-5. **Nav arrows mirrored to the LEFT hand: FDSA** (f=left, d=down, s=up, a=right —
-   same finger roles as hjkl, mirrored). Frees the right hand for numbers and
-   keeps Aerospace navigation one-handed. Selection: RSHFT (pos 35) + left arrows.
-6. **Tab on a thumb (pos 41).** `Cmd+Tab` requires the chord key to be in the HRM's
-   trigger list — thumbs are triggers, the corner position 0 is not. Bonus: the
-   dedicated RGUI thumb (pos 39) + TAB enables right-hand-only Cmd+Tab.
-7. **Symbol layer (SYM) holds full unshifted symbols** — coding never needs
-   layer+shift. Opened from either corner (`lyr 3 ESC` / `lyr 3 GRAVE`).
-   Backtick sits on the right hand (pos 6) so `` Cmd+` `` is cross-hand throughout.
-8. **Caps-word combo moved to corner keys 0+11** — it must NOT sit on Alt+Shift
-   (that chord is Aerospace move-window). Old combo (24+35) would conflict.
-9. **Layer-tap uses a custom `lyr` behavior (hold-preferred, term 180, quick-tap 150)**
-   instead of stock `&lt` (tap-preferred, 200ms): stock layer-tap delays layer
-   activation by the full tapping term — unacceptable for `alt+hjkl` speed.
+1. **Mod order on home row: Ctrl-Shift-Alt-GUI** (pinky→index, mirrored right).
+2. **HRM behaviors = urob's "timeless" recipe verbatim**: `balanced` flavor,
+   tapping-term 280, quick-tap 175, require-prior-idle 150, bilateral
+   (`hold-trigger-key-positions` = opposite hand + thumbs), `hold-trigger-on-release`.
+3. **Dedicated left column for the two macOS/Aerospace primary mods:**
+   **LGUI at pos 12, LALT at pos 24** — plain `&kp` keys. This is the single
+   most important robustness decision: every frequent chord (alt+num, alt+hjkl,
+   cmd+tab, cmd+num, cmd+letter, cmd+shift+arrow, cmd+space, zoom) is executed
+   with plain keys — no hold-tap timing, no post-typing cooldown, no bilateral
+   restrictions. The HRM mods remain for everything else.
+4. **All 10 numbers on the RIGHT hand** (NUM, left thumb 36); left home-row
+   mods stay ALIVE on NUM via `&trans` so cmd/alt+number stay cross-hand.
+5. **Nav arrows mirrored LEFT (FDSA)** — Aerospace focus one-handed, mouse-free.
+6. **Tab (41) and Enter (39) are plain thumb keys.** Chord keys must be in HRM
+   trigger lists (thumbs are, corners are not). Enter must never be a hold-tap
+   (roll-into-next-word misfires at 80+ WPM).
+7. **SYM layer: 27 unshifted symbols** from either corner (`lyr 3 ESC` / `lyr 3 GRAVE`);
+   backtick on the right hand (pos 6) so `` Cmd+` `` is cross-hand.
+8. **Custom `lyr` layer-tap (hold-preferred, 180ms, quick-tap 150)** — stock `&lt`
+   delays layer activation by its whole tapping term; `alt+hjkl` would feel broken.
+9. **Caps-word combo on corner keys 0+11** — must NOT sit on Alt+Shift or the
+   shift keys (those are Aerospace / selection chords).
+10. **NAV doubles as the system layer** (F-keys/media/DEL) — deviation from
+    Miryoku (dedicated FUN/MEDIA layers) forced by having no free thumb key.
+11. **Ctrl+letter chords use the RIGHT-hand Ctrl (`;` pos 22)** — cross-hand to
+    every letter, so readline (Ctrl+A/E/K/C/D...) works instantly. Left Ctrl(A)
+    same-hand chords require the hold-past-term technique (see limitations).
 
 ## Chord execution reference
 
 | Chord | Execution |
 |---|---|
-| `alt+num` (workspace) | dedicated LALT(24) hold + NUM thumb(36) + right-hand num. Alt: RALT(40)+36 also works |
-| `alt+hjkl` (focus) | LALT(24) + NAV thumb(38) + FDSA — entirely left hand |
-| `alt+shift+hjkl` (move) | LALT(24) + RSHFT(35) + NAV(38) + FDSA |
-| `alt+letter` (launcher) | LALT(24) + letter — no layer needed (dedicated key) |
-| `Cmd+Tab` / `` Cmd+` `` | LGUI-HRM(F,16) + TAB(41); `` Cmd+` `` = F + GRV-corner(11) + backtick(SYM pos 6) |
-| `Cmd+num` / `Cmd+Opt+num` | F(16, alive on NUM via &trans) + NUM(36) + num. **Opt comes from a dedicated Alt (24 or 40) — NOT the D-HRM stack** (see below) |
-| `Cmd+arrows` (line jump) | J-RGUI(19, alive on NAV via &trans) + NAV(38) + FDSA — cross-hand |
-| `Alt+arrows` (word jump) | dedicated LALT(24) or K-RALT(20, &trans) + NAV + FDSA |
+| `alt+num` workspace | LALT(24) + NUM(36) + digit — or RALT(40) variant |
+| `alt+hjkl` / `alt+shift+hjkl` | entirely LEFT hand: LALT(24) [+ RSHFT(35)] + NAV(38) + FDSA |
+| `alt+letter` launcher | LALT(24) + letter |
+| `Cmd+Tab` / `` Cmd+` `` | LGUI(12) + TAB(41) / + GRV-corner(11) + backtick(SYM 6) |
+| `cmd+enter` / `alt+enter` | LGUI(12) or F(16) + RET(39) / LALT(24) + RET(39) |
+| `cmd+letter` (T/W/R/L/Q…) | LGUI(12) + letter — plain keys, instant, incl. left-hand letters |
+| `cmd+num` / `cmd+opt+num` | LGUI(12) [+ LALT(24) or RALT(40)] + NUM(36) + digit — all plain |
+| `cmd+shift+arrow` (select-to-line) | LGUI(12) + RSHFT(35) + NAV(38) + FDSA — all plain |
+| `Cmd+Shift+3/4/5` screenshots | LGUI(12) + RSHFT(35) + digit — all plain |
+| `cmd/alt + -/+` zoom | mod + NUM(36) + MINUS/PLUS (NUM 30/31) |
+| Ctrl+letter (readline) | RCTRL(`;` 22) + letter — cross-hand, instant |
+| Ctrl+Shift+T etc. | `;`(22) + RSHFT(35) + letter (stack resolves via balanced) |
+| `Cmd+Space` (Spotlight) | LGUI(12) + SPACE(37) |
+| `Cmd+arrows` / `Alt+arrows` | LGUI(12) or J-RGUI(19, &trans) + NAV(38) + FDSA |
 | Shift+arrows (select) | RSHFT(35) + NAV(38) + FDSA |
-| `Ctrl+arrows` | NOT available on NAV (A/Ctrl is overridden by the a=RIGHT arrow). Unused under Aerospace; revisit only if needed |
-| Numbers in Neovim (`12j`) | NUM(36) hold + right-hand digits — no toggle needed at ≤4 digits |
+| F-keys | NAV(38) + F1–F12; media = NAV + left bottom row |
+| `Cmd+Del` (del to line start) | LGUI(12) + NAV(38) + DEL(23) |
 
-## Day-1 verification checklist (in order)
+## Comparison with battle-tested layouts
 
-1. Build via the repo's GitHub Actions workflow; flash both halves.
-2. Fast typing smoke test (80+ WPM bursts): zero misfired mods. If misfires:
-   raise `require-prior-idle-ms` (rule of thumb: 10500 / relaxed WPM ≈ 130).
-3. `Cmd+Tab`, `` Cmd+` `` (both directions of the app-instance loop).
-4. `alt+1..9` workspace switching; `alt+hjkl` focus; `alt+shift+hjkl` move.
-5. `alt+<letter>` launchers (incl. left-hand letters — dedicated Alt bypasses bilateral).
-6. `Cmd+num` browser tabs; `Cmd+Opt+num` Google Docs (via dedicated Alt + F stack).
-7. `Cmd+arrows` / `Alt+arrows` / `Shift+arrows` text navigation + selection.
-8. Symbol layer: every symbol, both hands; `Cmd+[` / `Cmd+]` indentation chords.
-9. Caps word: press both corner keys (0+11) — must NOT interfere with alt+shift chords.
-10. BT profile switching on NUM layer bottom-left.
+| Practice | Miryoku / urob / markstos | This layout |
+|---|---|---|
+| Full TKL key coverage incl. F-keys, media | Yes (Miryoku baseline claim) | Yes (after audit) |
+| Enter on a plain/dual thumb key | Yes (Miryoku base thumb) | Yes (39, plain) |
+| Dedicated mods for WM use | markstos keeps dedicated Alt | Yes: LGUI + LALT both dedicated |
+| HRM tuning | urob timeless recipe | Identical values |
+| Layers opposite-hand from access thumb | Yes (Miryoku) | NUM: yes (right hand). NAV: same-hand — deliberate deviation for one-handed Aerospace/mouse use |
+| Dedicated FUN/MEDIA layers | Yes (Miryoku tertiary thumbs) | Merged into NAV (no free thumb) — deviation |
+| Unshifted symbol layer | Miryoku uses shift+sym pairs; markstos unshifted | Unshifted (markstos-style) |
+| Arrows on right (vi HJKL) | Miryoku default | Left FDSA — deliberate deviation (mouse) |
 
-## Known open question
+## Known limitations (accepted, documented — verify on day 1)
 
-**`require-prior-idle-ms` vs. simultaneous mod+mod presses.** Pressing two home-row
-mods at the *same moment* may force the second one to tap (idle rule). This is why
-`Cmd+Opt+num` is designed to use a **dedicated Alt** instead of the D+F stack.
-If you ever need two HRMs stacked (e.g. `Ctrl+Shift+arrows`), test it; fallbacks:
-press the outer mod a few ms before the inner one, or drop `require-prior-idle-ms`
-to 125, or split a second HRM behavior without the idle rule for Ctrl/Shift.
+1. **HRM cooldown**: an HRM pressed within 150ms of typing resolves as tap.
+   All frequent chords avoid HRMs (dedicated mods), so this only affects
+   HRM-based convenience variants. Knob: `require-prior-idle-ms`.
+2. **Same-hand instant mod+alpha is blocked** by bilateral rules (that's the
+   misfire protection working). Escape hatch: hold the mod ~300ms (past
+   tapping-term), then tap the letter. Needed only for exotic same-hand chords.
+3. **Shift+click** (range select with right hand on mouse): left Shift is S-HRM
+   only — hold S ~300ms then click, or use caps-word. No dedicated left Shift slot.
+4. **Mouse emulation omitted** (Miryoku has it; ZMK needs an external module).
+   Add later only if wanted.
+5. **F11/F12 on NAV corners** is nonstandard — done to keep BT row and PgUp/PgDn.
+   macOS rarely uses them.
 
 ## Agent pitfalls — do NOT "fix" these (learned the hard way)
 
-1. **Never switch the HRM flavor to `tap-preferred`** (even if asked to reduce
-   misfires). With `tap-preferred`, a hold only fires after `tapping-term-ms`
-   expires, so every chord (`Cmd+num`, `alt+hjkl`, `Cmd+Tab`) waits ~280ms or
-   fails. `balanced` resolves the hold when the interrupting key is pressed AND
-   released and retroactively applies the mod — chords are instant. Misfire
-   tuning belongs in `require-prior-idle-ms` ONLY.
-2. **`hold-trigger-on-release` defers ONLY the positional (same-hand) check** to
-   the interrupting key's release — it does NOT delay the modifier. Cross-hand
-   chords still resolve instantly via the `balanced` flavor. Do not remove it:
-   removing it re-enables same-hand misfires AND kills deliberate two-mod stacks.
-3. **Do not replace the custom `lyr` behavior with stock `&lt`.** Stock `&lt` is
-   tap-preferred with a 200ms term: the layer only activates after a 200ms hold
-   (or never, if you tap a layer key quickly — it falls through to the tap
-   keycode). `alt+hjkl` would feel broken.
-4. **Chord keys must live in the HRM's trigger list.** This is why Tab is on a
-   thumb (pos 41) and not the corner (pos 0): thumbs are in `THUMBS`, the corner
-   is not. Never move a chorded key to a same-hand non-trigger position.
-5. **Do not put the caps-word combo on Alt+Shift or the two shift keys** — those
-   are Aerospace chords. It lives on corner keys 0+11 for a reason.
-6. **`require-prior-idle-ms` can force a tap on near-simultaneous mod+mod
-   presses.** This is why `Cmd+Opt+num` uses a DEDICATED Alt + the F-HRM instead
-   of stacking two HRMs. Do not "simplify" that path away.
+1. **Never switch the HRM flavor to `tap-preferred`** (even to reduce misfires).
+   Chords would wait ~280ms or fail. Misfire tuning belongs in
+   `require-prior-idle-ms` ONLY.
+2. **`hold-trigger-on-release` defers ONLY the positional (same-hand) check** —
+   it does not delay the modifier. Cross-hand chords resolve instantly via
+   `balanced`. Do not remove it.
+3. **Do not replace the custom `lyr` behavior with stock `&lt`** (tap-preferred
+   200ms delays every layer activation).
+4. **Chord keys must live in HRM trigger positions** — that's why Tab is on a
+   thumb. If you add a chorded key, check `KEYS_L/KEYS_R/THUMBS`.
+5. **Caps-word combo stays on 0+11.** Never Alt+Shift / shift pairs (Aerospace).
+6. **LGUI(12) and LALT(24) must stay plain `&kp`.** Do not convert them to
+   hold-taps to "recover" their positions — you would re-introduce the
+   post-typing cooldown on every primary chord.
+7. **Enter(39) and Tab(41) stay plain thumb keys** — see decision 6.
+8. **Positions 12–17 on NUM and 18–23 on NAV stay `&trans`** — they keep the
+   mods alive for cmd/alt+number and cmd/ctrl+arrows. Do not "use the free
+   slots" for other bindings without re-deriving the chord impact.
 
-## Tuning knobs (only touch after a week of use)
+## Day-1 verification checklist (in order)
+
+1. Build via repo's GitHub Actions; flash both halves.
+2. Fast-typing burst test: zero misfired mods. If any: ↑ require-prior-idle
+   (rule of thumb: 10500 / relaxed-WPM ≈ 130 at 80 WPM).
+3. `Cmd+Tab`, `` Cmd+` ``.
+4. `alt+1..9`, `alt+hjkl`, `alt+shift+hjkl`, `alt+<letter>`.
+5. `Cmd+num` browser tabs; `Cmd+Opt+num` Google Docs.
+6. `alt+enter`, `cmd+enter`; `Cmd+plus/minus` zoom.
+7. `Cmd+arrows`/`Alt+arrows`/`Shift+arrows`; `Cmd+Shift+arrows` selection.
+8. Ctrl+letter readline: Ctrl+A/E/K/C/D/W/R — all via `;` + letter.
+9. SYM layer: all symbols both hands; `Cmd+[`/`Cmd+]` indent.
+10. F-keys (NAV + right hand) in a TUI (htop); media keys.
+11. `Cmd+Shift+4` screenshot; `Cmd+Space` Spotlight; `Cmd+Del`.
+12. Caps word (corners 0+11) — must not fire during alt+shift chords.
+13. BT profiles (NUM bottom-left); PgUp/PgDn/Home/End (NUM right).
+
+## Tuning knobs (only after a week of use)
 
 | Symptom | Knob |
 |---|---|
-| Misfires while typing fast | ↑ `require-prior-idle-ms` (+10–25) |
-| Mods feel laggy / hard to trigger | ↓ `tapping-term-ms` (280 → 240) |
-| False mod on same-hand rolls | ↑ `tapping-term-ms`, or stricter index-finger behavior |
-| Accidental layer activation | `lyr` flavor → `balanced`, or ↑ term 180 → 220 |
-| FDSA arrows never feel natural | Swap NAV to right-hand arrows (needs numbers moved — ask the agent to re-derive) |
+| Misfires while typing | ↑ require-prior-idle (+10–25) |
+| Mods hard to trigger / laggy | ↓ tapping-term 280 → 240 |
+| Accidental layer activation | lyr flavor → balanced, or term 180 → 220 |
+| FDSA arrows never feel natural | Swap NAV to right-hand arrows (requires re-deriving numbers — ask the agent) |
 
 ## Position map
 
