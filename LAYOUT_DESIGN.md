@@ -4,7 +4,7 @@
 > run the CLI inside the repo, `/import LAYOUT_DESIGN.md`, then ask for changes.
 > All chord mechanics verified against the ZMK hold-tap documentation and
 > audited against Miryoku (the most battle-tested minimal layout), urob's
-> reference ZMK config, and markstos's layout.
+> reference ZMK config, markstos's layout, and Seniply (Steve P).
 
 ## User profile
 
@@ -25,7 +25,7 @@
 |---|---|
 | Letters A–Z | Base |
 | Digits 0–9 | NUM right side |
-| All 29 shifted/unshifted symbols | SYM, all unshifted |
+| All 30 shifted/unshifted symbols | SYM, all unshifted |
 | **F1–F12** | NAV right side (6–10, 30–34) + corners (0, 11) |
 | **Media** (vol±/mute/prev/next/play) | NAV left bottom (17, 25–29) |
 | **Forward Delete** | NAV 23 (`Cmd+Del` = delete-to-line-start via 12 or J) |
@@ -53,8 +53,22 @@
 6. **Tab (41) and Enter (39) are plain thumb keys.** Chord keys must be in HRM
    trigger lists (thumbs are, corners are not). Enter must never be a hold-tap
    (roll-into-next-word misfires at 80+ WPM).
-7. **SYM layer: 27 unshifted symbols** from either corner (`lyr 3 ESC` / `lyr 3 GRAVE`);
-   backtick on the right hand (pos 6) so `` Cmd+` `` is cross-hand.
+7. **SYM layer (v2, bigram-optimized): 30 unshifted symbols from either corner
+   (`lyr 3 ESC` / `lyr 3 GRAVE`).** Backtick stays right (pos 6) so `` Cmd+` ``
+   is cross-hand. Arrangement rules, in priority order — do not casually
+   re-derive; every slot was placed against code-bigram hand analysis:
+   - Bracket pairs split across hands, openers L / closers R, by frequency:
+     `()` index homes (16/19), `[]` middle homes (15/20), `{}` adjacent inner
+     homes (17/18), `<>` inner bottom (29/30).
+   - Math `-` `=` left (3/4), `>` right (30): `->` `=>` `>=` `+=` `!=` `==`
+     all alternate hands.
+   - Sigils `#` `$` `@` `%` right top (7–10): `:%s`, `#include <`, `#{`,
+     `${`, `@[`, `#[derive]` all cross-hand.
+   - `~` left (13), `/` right (32): `~/`, `/* */`, `</` cross-hand.
+   - `"` right (21), `'` left (27), `_` left (28): `{"`, `":`, `";`, and Vim
+     registers `"+` / `"_` stay cross-hand.
+   - Accepted same-hand losses: `<=` `-=` `/>` `{'` (each less frequent than
+     the sequences it would displace).
 8. **Custom `lyr` layer-tap (hold-preferred, 180ms, quick-tap 150)** — stock `&lt`
    delays layer activation by its whole tapping term; `alt+hjkl` would feel broken.
 9. **Caps-word combo on corner keys 0+11** — must NOT sit on Alt+Shift or the
@@ -73,6 +87,7 @@
 | `alt+hjkl` / `alt+shift+hjkl` | entirely LEFT hand: LALT(24) [+ RSHFT(35)] + NAV(38) + FDSA |
 | `alt+letter` launcher | LALT(24) + letter |
 | `Cmd+Tab` / `` Cmd+` `` | LGUI(12) + TAB(41) / + GRV-corner(11) + backtick(SYM 6) |
+| `Cmd+[` / `Cmd+]` (back / indent) | LGUI(12) + GRV-corner(11) + LBKT(15) or RBKT(20) |
 | `cmd+enter` / `alt+enter` | LGUI(12) or F(16) + RET(39) / LALT(24) + RET(39) |
 | `cmd+letter` (T/W/R/L/Q…) | LGUI(12) + letter — plain keys, instant, incl. left-hand letters |
 | `cmd+num` / `cmd+opt+num` | LGUI(12) [+ LALT(24) or RALT(40)] + NUM(36) + digit — all plain |
@@ -97,7 +112,7 @@
 | HRM tuning | urob timeless recipe | Identical values |
 | Layers opposite-hand from access thumb | Yes (Miryoku) | NUM: yes (right hand). NAV: same-hand — deliberate deviation for one-handed Aerospace/mouse use |
 | Dedicated FUN/MEDIA layers | Yes (Miryoku tertiary thumbs) | Merged into NAV (no free thumb) — deviation |
-| Unshifted symbol layer | Miryoku uses shift+sym pairs; markstos unshifted | Unshifted (markstos-style) |
+| Unshifted symbol layer | Miryoku uses shift+sym pairs; markstos unshifted | Unshifted, cross-hand pair-split (opener-L / closer-R) |
 | Arrows on right (vi HJKL) | Miryoku default | Left FDSA — deliberate deviation (mouse) |
 
 ## Known limitations (accepted, documented — verify on day 1)
@@ -135,6 +150,13 @@
 8. **Positions 12–17 on NUM and 18–23 on NAV stay `&trans`** — they keep the
    mods alive for cmd/alt+number and cmd/ctrl+arrows. Do not "use the free
    slots" for other bindings without re-deriving the chord impact.
+9. **SYM bracket pairs stay split across hands (v2).** Corner-held layers make
+   same-hand rolls worse, and empty brackets are typed constantly without IDE
+   auto-pairs. Do not re-pair `(){}[]` on one hand or finger.
+10. **Chord-bearing SYM slots: GRAVE 6, LBKT 15 / RBKT 20, `"` 21, `!` 22,
+    `_` 28.** Do not "tidy" them back toward the old shift-row arrangement.
+11. **SYM pos 34 is intentionally `&none`.** Every filled slot must re-derive
+    its bigram impact; do not refill it with leftovers.
 
 ## Day-1 verification checklist (in order)
 
@@ -147,7 +169,8 @@
 6. `alt+enter`, `cmd+enter`; `Cmd+plus/minus` zoom.
 7. `Cmd+arrows`/`Alt+arrows`/`Shift+arrows`; `Cmd+Shift+arrows` selection.
 8. Ctrl+letter readline: Ctrl+A/E/K/C/D/W/R — all via `;` + letter.
-9. SYM layer: all symbols both hands; `Cmd+[`/`Cmd+]` indent.
+9. SYM layer: all 30 symbols both hands; `Cmd+[`/`Cmd+]` indent (use corner 11);
+   bigram spot-checks: `()` `{}` `->` `=>` `:%s` `");` `~/` `/* */` `{"` `":`.
 10. F-keys (NAV + right hand) in a TUI (htop); media keys.
 11. `Cmd+Shift+4` screenshot; `Cmd+Space` Spotlight; `Cmd+Del`.
 12. Caps word (corners 0+11) — must not fire during alt+shift chords.

@@ -136,15 +136,26 @@
         };
 
         // ---------------------------------------------------------------------
-	// SYM (hold ESC-corner or GRV-corner) — all symbols unshifted.
-	// Backtick on the right hand (pos 6) so Cmd+` is: hold Cmd(F), hold
-	// GRV-corner, tap backtick — cross-hand throughout.
+	// SYM (hold ESC-corner or GRV-corner) — all 30 symbols unshifted.
+	// v2 arrangement, bigram-optimized (LAYOUT_DESIGN.md decision 7):
+	//   - Bracket pairs split across hands, openers L / closers R, by
+	//     frequency: () index homes (16/19), [] middle homes (15/20),
+	//     {} adjacent inner homes (17/18), <> unchanged (29/30).
+	//   - Math: - = left (3/4), > right (30) -> ->, =>, >=, +=, !=, ==
+	//     all alternate hands.
+	//   - Sigils # $ @ % right top (7-10): :%s, #include <, #{, ${, @[.
+	//   - ~ left (13), / right (32): ~/, /* */, </ all cross-hand.
+	//   - " right (21), ' left (27), _ left (28): {" ", ", ", ";, and
+	//     Vim registers "+ / "_ stay cross-hand.
+	// Backtick stays on the right (pos 6) so Cmd+` stays cross-hand via
+	// corner 11. Pos 34 is intentionally &none; dedicated mods stay live
+	// via &trans (12/24/35/40 + thumbs).
         // ---------------------------------------------------------------------
         sym_layer {
             bindings = <
-   &trans &kp EXCL  &kp AT    &kp HASH &kp DLLR  &kp PRCNT   &kp GRAVE &kp MINUS &kp EQUAL &kp LBKT &kp RBKT &trans
-   &trans &kp CARET &kp AMPS  &kp ASTRK &kp LPAR &kp RPAR    &kp TILDE &kp PIPE  &kp UNDER &kp PLUS &kp LBRC &kp RBRC
-   &trans &kp SEMI  &kp COLON &kp SQT  &kp DQT   &kp LT      &kp GT    &kp BSLH  &kp FSLH  &kp QMARK &trans  &trans
+   &trans &kp QMARK &kp AMPS  &kp MINUS &kp EQUAL &kp ASTRK   &kp GRAVE &kp HASH &kp DLLR &kp AT   &kp PRCNT &trans
+   &trans &kp TILDE &kp PIPE  &kp LBKT  &kp LPAR  &kp LBRC    &kp RBRC  &kp RPAR &kp RBKT &kp DQT  &kp EXCL  &kp CARET
+   &trans &kp SEMI  &kp COLON &kp SQT   &kp UNDER &kp LT      &kp GT    &kp BSLH &kp FSLH &kp PLUS &none     &trans
                               &trans   &trans    &trans      &trans   &trans    &trans
             >;
         };
